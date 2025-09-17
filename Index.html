@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D LP Cube</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #2a2a2a; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: Arial, sans-serif;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <b>LP Cube - 3D View</b><br>
+        Drag to rotate | Scroll to zoom
+    </div>
+    <canvas id="c"></canvas>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // 1. SCENE SETUP
+        // ======================================
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 7; // Pull camera back to see the cube
+
+        const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#c'), antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 2. LIGHTING
+        // ======================================
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Soft white light
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Sunlight effect
+        directionalLight.position.set(5, 10, 7.5);
+        scene.add(directionalLight);
+
+        // 3. THE LP CUBE
+        // ======================================
+        // Load a wood texture
+        const textureLoader = new THREE.TextureLoader();
+        const woodTexture = textureLoader.load('https://www.textures.com/system/gallery/photos/Wood/Planks/Clean/36268/WoodPlanksClean0055_1_S.jpg');
+        woodTexture.wrapS = THREE.RepeatWrapping;
+        woodTexture.wrapT = THREE.RepeatWrapping;
+        woodTexture.repeat.set(2, 2); // Repeat texture for better scale
+
+        // Create the cube geometry using the real dimensions (scaled down)
+        // Original: 340mm wide, 380mm high, 340mm deep
+        const cubeGeometry = new THREE.BoxGeometry(3.4, 3.8, 3.4);
+        
+        // Create the material with the wood texture
+        const cubeMaterial = new THREE.MeshStandardMaterial({
+            map: woodTexture,
+            roughness: 0.7,
+            metalness: 0.1
+        });
+        
+        // Combine geometry and material into a mesh
+        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        scene.add(cube);
+
+        // 4. CONTROLS
+        // ======================================
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Makes the rotation feel smoother
+        controls.dampingFactor = 0.05;
+
+        // 5. ANIMATION LOOP
+        // ======================================
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update controls for smooth interaction
+            controls.update();
+
+            // Render the scene
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
