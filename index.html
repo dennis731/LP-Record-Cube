@@ -104,48 +104,61 @@
         topPanel.position.y = height / 2 - thickness / 2;
         storageCube.add(topPanel);
 
-        // Right panel
-        const rightGeometry = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
-        const rightPanel = new THREE.Mesh(rightGeometry, panelMaterial);
-        rightPanel.position.x = width/2 - thickness/2;
-        rightPanel.position.y = thickness/2;
-        storageCube.add(rightPanel);
+        // Right panel (with 2 handle slots)
+        const rightPanelGroup = new THREE.Group();
 
-        // Left panel
-        const leftGeometry = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
-        const leftPanel = new THREE.Mesh(leftGeometry, panelMaterial);
-        leftPanel.position.x = -width/2 + thickness/2;
-        leftPanel.position.y = thickness/2;
-        storageCube.add(leftPanel);
+        // Main right panel
+        const rightPanelMainGeo = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
+        const rightPanelMain = new THREE.Mesh(rightPanelMainGeo, panelMaterial);
+        rightPanelMain.position.x = thickness / 2;
+        rightPanelGroup.add(rightPanelMain);
 
-        // Handles ONLY
-        const handleMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.7, roughness: 0.3 });
-        const handleRadius = 0.08;
-        const handleLength = 0.6;
-        const handleOffsetY = height/2 - thickness - 0.35;
-        const handleOffsetZ = depth/2 - thickness - 0.5;
+        // Slot geometry for handles
+        const slotWidth = 0.4;    // width of slot
+        const slotHeight = 0.18;  // height of slot, matches panel thickness
+        const slotDepth = 0.12;   // depth into the panel
 
-        // Left handle
-        const leftHandleGeo = new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 16);
-        const leftHandle = new THREE.Mesh(leftHandleGeo, handleMaterial);
-        leftHandle.rotation.z = Math.PI / 2;
-        leftHandle.position.set(
-            -width/2 + thickness/2 + 0.05,
-            handleOffsetY,
-            handleOffsetZ
-        );
-        storageCube.add(leftHandle);
+        // Top slot (right panel)
+        const rightSlot1Geo = new THREE.BoxGeometry(thickness + 0.01, slotHeight, slotWidth);
+        const slotMat = new THREE.MeshStandardMaterial({ color: 0x222222, transparent: true, opacity: 0.22 });
+        const rightSlot1 = new THREE.Mesh(rightSlot1Geo, slotMat);
+        rightSlot1.position.set(0, (height/2) - thickness - 0.28, (depth/2) - thickness - slotWidth/2 - 0.16);
+        rightPanelGroup.add(rightSlot1);
 
-        // Right handle
-        const rightHandleGeo = new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 16);
-        const rightHandle = new THREE.Mesh(rightHandleGeo, handleMaterial);
-        rightHandle.rotation.z = Math.PI / 2;
-        rightHandle.position.set(
-            width/2 - thickness/2 - 0.05,
-            handleOffsetY,
-            handleOffsetZ
-        );
-        storageCube.add(rightHandle);
+        // Bottom slot (right panel)
+        const rightSlot2Geo = new THREE.BoxGeometry(thickness + 0.01, slotHeight, slotWidth);
+        const rightSlot2 = new THREE.Mesh(rightSlot2Geo, slotMat);
+        rightSlot2.position.set(0, -(height/2) + thickness + 0.28, (depth/2) - thickness - slotWidth/2 - 0.16);
+        rightPanelGroup.add(rightSlot2);
+
+        rightPanelGroup.position.x = width/2 - thickness/2;
+        rightPanelGroup.position.y = thickness/2;
+        storageCube.add(rightPanelGroup);
+
+        // Left panel (with 2 handle slots)
+        const leftPanelGroup = new THREE.Group();
+
+        // Main left panel
+        const leftPanelMainGeo = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
+        const leftPanelMain = new THREE.Mesh(leftPanelMainGeo, panelMaterial);
+        leftPanelMain.position.x = -thickness / 2;
+        leftPanelGroup.add(leftPanelMain);
+
+        // Top slot (left panel)
+        const leftSlot1Geo = new THREE.BoxGeometry(thickness + 0.01, slotHeight, slotWidth);
+        const leftSlot1 = new THREE.Mesh(leftSlot1Geo, slotMat);
+        leftSlot1.position.set(0, (height/2) - thickness - 0.28, (depth/2) - thickness - slotWidth/2 - 0.16);
+        leftPanelGroup.add(leftSlot1);
+
+        // Bottom slot (left panel)
+        const leftSlot2Geo = new THREE.BoxGeometry(thickness + 0.01, slotHeight, slotWidth);
+        const leftSlot2 = new THREE.Mesh(leftSlot2Geo, slotMat);
+        leftSlot2.position.set(0, -(height/2) + thickness + 0.28, (depth/2) - thickness - slotWidth/2 - 0.16);
+        leftPanelGroup.add(leftSlot2);
+
+        leftPanelGroup.position.x = -width/2 + thickness/2;
+        leftPanelGroup.position.y = thickness/2;
+        storageCube.add(leftPanelGroup);
 
         // Add the finished cube to the scene
         scene.add(storageCube);
