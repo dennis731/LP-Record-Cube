@@ -104,44 +104,21 @@
         topPanel.position.y = height / 2 - thickness / 2;
         storageCube.add(topPanel);
 
-        // RIGHT panel with slot
-        const rightPanel = new THREE.Group();
-        // Main right panel
-        const rightPanelMainGeo = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
-        const rightPanelMain = new THREE.Mesh(rightPanelMainGeo, panelMaterial);
-        rightPanelMain.position.x = thickness / 2;
-        rightPanel.add(rightPanelMain);
-
-        // Slot geometry (rectangle cutout)
-        const slotWidth = 0.4;
-        const slotHeight = 1.6;
-        const slotGeo = new THREE.BoxGeometry(thickness + 0.01, slotHeight, slotWidth);
-        const slotMat = new THREE.MeshStandardMaterial({ color: 0x111111, transparent: true, opacity: 0.24 });
-        const slot = new THREE.Mesh(slotGeo, slotMat);
-        slot.position.set(0, 0.15, depth/2 - thickness - slotWidth/2 - 0.12);
-        rightPanel.add(slot);
-
+        // Right panel
+        const rightGeometry = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
+        const rightPanel = new THREE.Mesh(rightGeometry, panelMaterial);
         rightPanel.position.x = width/2 - thickness/2;
         rightPanel.position.y = thickness/2;
         storageCube.add(rightPanel);
 
-        // LEFT panel with slot
-        const leftPanel = new THREE.Group();
-        const leftPanelMainGeo = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
-        const leftPanelMain = new THREE.Mesh(leftPanelMainGeo, panelMaterial);
-        leftPanelMain.position.x = -thickness / 2;
-        leftPanel.add(leftPanelMain);
-
-        // Slot geometry
-        const slot2 = new THREE.Mesh(slotGeo, slotMat);
-        slot2.position.set(0, 0.15, depth/2 - thickness - slotWidth/2 - 0.12);
-        leftPanel.add(slot2);
-
+        // Left panel
+        const leftGeometry = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
+        const leftPanel = new THREE.Mesh(leftGeometry, panelMaterial);
         leftPanel.position.x = -width/2 + thickness/2;
         leftPanel.position.y = thickness/2;
         storageCube.add(leftPanel);
 
-        // Handles
+        // Handles ONLY
         const handleMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.7, roughness: 0.3 });
         const handleRadius = 0.08;
         const handleLength = 0.6;
@@ -169,60 +146,6 @@
             handleOffsetZ
         );
         storageCube.add(rightHandle);
-
-        // LPs with Covers - colors/textures
-        const coverColors = [0xC41E3A, 0x1E5FC4, 0xF1B70F, 0x1FC41E, 0x8E44AD, 0xE67E22, 0x34495E, 0xF4F6F7];
-        const lpMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.5, roughness: 0.6 });
-        const lpRadius = 1.45;
-        const lpThickness = 0.03;
-        const lpCount = 6;
-
-        for (let i = 0; i < lpCount; i++) {
-            // Cover as thin box
-            const coverGeo = new THREE.BoxGeometry(lpRadius*2+0.07, lpThickness*2.3, lpRadius*2+0.07);
-            const colorIdx = Math.floor(Math.random() * coverColors.length);
-            const coverMat = new THREE.MeshStandardMaterial({ 
-                color: coverColors[colorIdx], 
-                roughness: 0.7,
-                metalness: 0.15
-            });
-            const cover = new THREE.Mesh(coverGeo, coverMat);
-
-            // LP inside cover - only slightly visible at the slot
-            const lpGeo = new THREE.CylinderGeometry(lpRadius, lpRadius, lpThickness, 64);
-            const lp = new THREE.Mesh(lpGeo, lpMaterial);
-            lp.rotation.x = Math.PI / 2;
-            lp.position.y = 0;
-            lp.position.z = 0.01;
-            cover.add(lp);
-
-            // "Sticker" label
-            const labelGeo = new THREE.CylinderGeometry(0.18, 0.18, lpThickness+0.01, 32);
-            const labelMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-            const label = new THREE.Mesh(labelGeo, labelMat);
-            label.position.set(0,0,0.012);
-            lp.add(label);
-
-            // Position: some records peeking through slot, others inside
-            if (i % 2 === 0) {
-                // Peeking through right slot
-                cover.position.set(
-                    width/2 - thickness - 0.08,
-                    -height/2 + thickness + lpRadius + 0.08 + i*0.18,
-                    depth/2 - thickness - slotWidth/2 - 0.13
-                );
-                cover.rotation.y = -0.07 + (Math.random()-0.5) * 0.04;
-            } else {
-                // Peeking through left slot
-                cover.position.set(
-                    -width/2 + thickness + 0.08,
-                    -height/2 + thickness + lpRadius + 0.08 + i*0.18,
-                    depth/2 - thickness - slotWidth/2 - 0.13
-                );
-                cover.rotation.y = 0.07 + (Math.random()-0.5) * 0.04;
-            }
-            storageCube.add(cover);
-        }
 
         // Add the finished cube to the scene
         scene.add(storageCube);
