@@ -66,8 +66,6 @@
         // 3. THE LP CUBE (REDESIGNED)
         // ======================================
         const textureLoader = new THREE.TextureLoader();
-        // IMPORTANT: This loads the texture from your repository.
-        // Make sure you have 'wood-texture.jpg' uploaded.
         const woodTexture = textureLoader.load('woodgrain.jpg');
         woodTexture.wrapS = THREE.RepeatWrapping;
         woodTexture.wrapT = THREE.RepeatWrapping;
@@ -122,16 +120,70 @@
         topPanel.position.y = height / 2 - thickness / 2;
         storageCube.add(topPanel);
 
+        // ---- 4. ADD HANDLES ----
+        // Handles as cylinders, attached to left and right panels near the top
+        const handleMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.7, roughness: 0.3 });
+        const handleRadius = 0.08;
+        const handleLength = 0.6;
+        const handleOffsetY = height/2 - thickness - 0.35; // slightly below top edge
+        const handleOffsetZ = depth/2 - thickness - 0.5;   // near front
+
+        // Left handle
+        const leftHandleGeo = new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 16);
+        const leftHandle = new THREE.Mesh(leftHandleGeo, handleMaterial);
+        leftHandle.rotation.z = Math.PI / 2;
+        leftHandle.position.set(
+            -width/2 + thickness/2 + 0.05,
+            handleOffsetY,
+            handleOffsetZ
+        );
+        storageCube.add(leftHandle);
+
+        // Right handle
+        const rightHandleGeo = new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 16);
+        const rightHandle = new THREE.Mesh(rightHandleGeo, handleMaterial);
+        rightHandle.rotation.z = Math.PI / 2;
+        rightHandle.position.set(
+            width/2 - thickness/2 - 0.05,
+            handleOffsetY,
+            handleOffsetZ
+        );
+        storageCube.add(rightHandle);
+
+        // ---- 5. ADD LPs INSIDE THE CUBE ----
+        // LPs: Thin cylinders, colored black, inside the cube
+        const lpMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.5, roughness: 0.6 });
+        const lpRadius = 1.45; // 290mm diameter (approx 12" record)
+        const lpThickness = 0.03; // 3mm thick
+        const lpCount = 4;
+        for (let i = 0; i < lpCount; i++) {
+            const lpGeo = new THREE.CylinderGeometry(lpRadius, lpRadius, lpThickness, 64);
+            const lp = new THREE.Mesh(lpGeo, lpMaterial);
+            // Stagger LPs with slight offset and rotation
+            lp.rotation.x = Math.PI / 2 + (Math.random()-0.5) * 0.15;
+            lp.position.y = -height/2 + thickness + lpRadius + 0.2 + i*0.18;
+            lp.position.z = (Math.random()-0.5) * 0.3;
+            lp.position.x = (Math.random()-0.5) * 0.3;
+            storageCube.add(lp);
+
+            // Add a simple label sticker (white circle) to the center
+            const labelGeo = new THREE.CylinderGeometry(0.18, 0.18, lpThickness+0.01, 32);
+            const labelMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            const label = new THREE.Mesh(labelGeo, labelMat);
+            label.position.set(0,0,0);
+            lp.add(label);
+        }
+
         // Add the finished cube to the scene
         scene.add(storageCube);
 
-        // 4. CONTROLS
+        // 6. CONTROLS
         // ======================================
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
 
-        // 5. ANIMATION LOOP
+        // 7. ANIMATION LOOP
         // ======================================
         function animate() {
             requestAnimationFrame(animate);
