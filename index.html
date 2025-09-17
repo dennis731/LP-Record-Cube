@@ -49,7 +49,6 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
 
-        // Handle window resizing
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -58,51 +57,85 @@
 
         // 2. LIGHTING
         // ======================================
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Soft white light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Sunlight effect
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
         directionalLight.position.set(5, 10, 7.5);
         scene.add(directionalLight);
 
-        // 3. THE LP CUBE
+        // 3. THE LP CUBE (REDESIGNED)
         // ======================================
-        // Load a wood texture
         const textureLoader = new THREE.TextureLoader();
-        const woodTexture = textureLoader.load('woodgrain.jpg');
+        // IMPORTANT: This loads the texture from your repository.
+        // Make sure you have 'wood-texture.jpg' uploaded.
+        const woodTexture = textureLoader.load('wood-texture.jpg');
         woodTexture.wrapS = THREE.RepeatWrapping;
         woodTexture.wrapT = THREE.RepeatWrapping;
-        woodTexture.repeat.set(2, 2); // Repeat texture for better scale
+        woodTexture.repeat.set(2, 2);
 
-        // Create the cube geometry using the real dimensions (scaled down)
-        // Original: 340mm wide, 380mm high, 340mm deep
-        const cubeGeometry = new THREE.BoxGeometry(3.4, 3.8, 3.4);
-        
-        // Create the material with the wood texture
-        const cubeMaterial = new THREE.MeshStandardMaterial({
+        // Define the dimensions for the storage cube
+        const width = 3.4;  // 340mm
+        const height = 3.8; // 380mm
+        const depth = 3.4;  // 340mm
+        const thickness = 0.18; // 18mm
+
+        // Create a single material that all panels will share
+        const panelMaterial = new THREE.MeshStandardMaterial({
             map: woodTexture,
             roughness: 0.7,
             metalness: 0.1
         });
-        
-        // Combine geometry and material into a mesh
-        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        scene.add(cube);
+
+        // Create a group to hold all the panels
+        const storageCube = new THREE.Group();
+
+        // 1. Bottom Panel
+        const bottomGeometry = new THREE.BoxGeometry(width, thickness, depth);
+        const bottomPanel = new THREE.Mesh(bottomGeometry, panelMaterial);
+        bottomPanel.position.y = -height / 2 + thickness / 2;
+        storageCube.add(bottomPanel);
+
+        // 2. Back Panel
+        const backGeometry = new THREE.BoxGeometry(width, height - thickness, thickness);
+        const backPanel = new THREE.Mesh(backGeometry, panelMaterial);
+        backPanel.position.z = -depth / 2 + thickness / 2;
+        backPanel.position.y = thickness / 2;
+        storageCube.add(backPanel);
+
+        // 3. Left Panel
+        const leftGeometry = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
+        const leftPanel = new THREE.Mesh(leftGeometry, panelMaterial);
+        leftPanel.position.x = -width / 2 + thickness / 2;
+        leftPanel.position.y = thickness / 2;
+        storageCube.add(leftPanel);
+
+        // 4. Right Panel
+        const rightGeometry = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
+        const rightPanel = new THREE.Mesh(rightGeometry, panelMaterial);
+        rightPanel.position.x = width / 2 - thickness / 2;
+        rightPanel.position.y = thickness / 2;
+        storageCube.add(rightPanel);
+
+        // 5. Top Panel
+        const topGeometry = new THREE.BoxGeometry(width, thickness, depth);
+        const topPanel = new THREE.Mesh(topGeometry, panelMaterial);
+        topPanel.position.y = height / 2 - thickness / 2;
+        storageCube.add(topPanel);
+
+        // Add the finished cube to the scene
+        scene.add(storageCube);
 
         // 4. CONTROLS
         // ======================================
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true; // Makes the rotation feel smoother
+        controls.enableDamping = true;
         controls.dampingFactor = 0.05;
 
         // 5. ANIMATION LOOP
         // ======================================
         function animate() {
             requestAnimationFrame(animate);
-
-            // Update controls for smooth interaction
             controls.update();
-
-            // Render the scene
             renderer.render(scene, camera);
         }
 
