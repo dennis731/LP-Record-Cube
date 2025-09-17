@@ -39,11 +39,10 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // 1. SCENE SETUP
-        // ======================================
+        // SCENE SETUP
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 7; // Pull camera back to see the cube
+        camera.position.z = 7;
 
         const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#c'), antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -55,78 +54,99 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // 2. LIGHTING
-        // ======================================
+        // LIGHTING
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
         directionalLight.position.set(5, 10, 7.5);
         scene.add(directionalLight);
 
-        // 3. THE LP CUBE (REDESIGNED)
-        // ======================================
+        // TEXTURE (WOOD)
         const textureLoader = new THREE.TextureLoader();
         const woodTexture = textureLoader.load('woodgrain.jpg');
         woodTexture.wrapS = THREE.RepeatWrapping;
         woodTexture.wrapT = THREE.RepeatWrapping;
         woodTexture.repeat.set(2, 2);
 
-        // Define the dimensions for the storage cube
+        // Cube Dimensions
         const width = 3.4;  // 340mm
         const height = 3.8; // 380mm
         const depth = 3.4;  // 340mm
         const thickness = 0.18; // 18mm
 
-        // Create a single material that all panels will share
+        // Materials
         const panelMaterial = new THREE.MeshStandardMaterial({
             map: woodTexture,
             roughness: 0.7,
             metalness: 0.1
         });
 
-        // Create a group to hold all the panels
+        // Cube Group
         const storageCube = new THREE.Group();
 
-        // 1. Bottom Panel
+        // Panels
+        // Bottom
         const bottomGeometry = new THREE.BoxGeometry(width, thickness, depth);
         const bottomPanel = new THREE.Mesh(bottomGeometry, panelMaterial);
         bottomPanel.position.y = -height / 2 + thickness / 2;
         storageCube.add(bottomPanel);
 
-        // 2. Back Panel
+        // Back
         const backGeometry = new THREE.BoxGeometry(width, height - thickness, thickness);
         const backPanel = new THREE.Mesh(backGeometry, panelMaterial);
         backPanel.position.z = -depth / 2 + thickness / 2;
         backPanel.position.y = thickness / 2;
         storageCube.add(backPanel);
 
-        // 3. Left Panel
-        const leftGeometry = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
-        const leftPanel = new THREE.Mesh(leftGeometry, panelMaterial);
-        leftPanel.position.x = -width / 2 + thickness / 2;
-        leftPanel.position.y = thickness / 2;
-        storageCube.add(leftPanel);
-
-        // 4. Right Panel
-        const rightGeometry = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
-        const rightPanel = new THREE.Mesh(rightGeometry, panelMaterial);
-        rightPanel.position.x = width / 2 - thickness / 2;
-        rightPanel.position.y = thickness / 2;
-        storageCube.add(rightPanel);
-
-        // 5. Top Panel
+        // Top
         const topGeometry = new THREE.BoxGeometry(width, thickness, depth);
         const topPanel = new THREE.Mesh(topGeometry, panelMaterial);
         topPanel.position.y = height / 2 - thickness / 2;
         storageCube.add(topPanel);
 
-        // ---- 4. ADD HANDLES ----
-        // Handles as cylinders, attached to left and right panels near the top
+        // RIGHT panel with slot
+        const rightPanel = new THREE.Group();
+        // Main right panel
+        const rightPanelMainGeo = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
+        const rightPanelMain = new THREE.Mesh(rightPanelMainGeo, panelMaterial);
+        rightPanelMain.position.x = thickness / 2;
+        rightPanel.add(rightPanelMain);
+
+        // Slot geometry (rectangle cutout)
+        const slotWidth = 0.4;
+        const slotHeight = 1.6;
+        const slotGeo = new THREE.BoxGeometry(thickness + 0.01, slotHeight, slotWidth);
+        const slotMat = new THREE.MeshStandardMaterial({ color: 0x111111, transparent: true, opacity: 0.24 });
+        const slot = new THREE.Mesh(slotGeo, slotMat);
+        slot.position.set(0, 0.15, depth/2 - thickness - slotWidth/2 - 0.12);
+        rightPanel.add(slot);
+
+        rightPanel.position.x = width/2 - thickness/2;
+        rightPanel.position.y = thickness/2;
+        storageCube.add(rightPanel);
+
+        // LEFT panel with slot
+        const leftPanel = new THREE.Group();
+        const leftPanelMainGeo = new THREE.BoxGeometry(thickness, height - thickness, depth - thickness);
+        const leftPanelMain = new THREE.Mesh(leftPanelMainGeo, panelMaterial);
+        leftPanelMain.position.x = -thickness / 2;
+        leftPanel.add(leftPanelMain);
+
+        // Slot geometry
+        const slot2 = new THREE.Mesh(slotGeo, slotMat);
+        slot2.position.set(0, 0.15, depth/2 - thickness - slotWidth/2 - 0.12);
+        leftPanel.add(slot2);
+
+        leftPanel.position.x = -width/2 + thickness/2;
+        leftPanel.position.y = thickness/2;
+        storageCube.add(leftPanel);
+
+        // Handles
         const handleMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.7, roughness: 0.3 });
         const handleRadius = 0.08;
         const handleLength = 0.6;
-        const handleOffsetY = height/2 - thickness - 0.35; // slightly below top edge
-        const handleOffsetZ = depth/2 - thickness - 0.5;   // near front
+        const handleOffsetY = height/2 - thickness - 0.35;
+        const handleOffsetZ = depth/2 - thickness - 0.5;
 
         // Left handle
         const leftHandleGeo = new THREE.CylinderGeometry(handleRadius, handleRadius, handleLength, 16);
@@ -150,47 +170,74 @@
         );
         storageCube.add(rightHandle);
 
-        // ---- 5. ADD LPs INSIDE THE CUBE ----
-        // LPs: Thin cylinders, colored black, inside the cube
+        // LPs with Covers - colors/textures
+        const coverColors = [0xC41E3A, 0x1E5FC4, 0xF1B70F, 0x1FC41E, 0x8E44AD, 0xE67E22, 0x34495E, 0xF4F6F7];
         const lpMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.5, roughness: 0.6 });
-        const lpRadius = 1.45; // 290mm diameter (approx 12" record)
-        const lpThickness = 0.03; // 3mm thick
-        const lpCount = 4;
+        const lpRadius = 1.45;
+        const lpThickness = 0.03;
+        const lpCount = 6;
+
         for (let i = 0; i < lpCount; i++) {
+            // Cover as thin box
+            const coverGeo = new THREE.BoxGeometry(lpRadius*2+0.07, lpThickness*2.3, lpRadius*2+0.07);
+            const colorIdx = Math.floor(Math.random() * coverColors.length);
+            const coverMat = new THREE.MeshStandardMaterial({ 
+                color: coverColors[colorIdx], 
+                roughness: 0.7,
+                metalness: 0.15
+            });
+            const cover = new THREE.Mesh(coverGeo, coverMat);
+
+            // LP inside cover - only slightly visible at the slot
             const lpGeo = new THREE.CylinderGeometry(lpRadius, lpRadius, lpThickness, 64);
             const lp = new THREE.Mesh(lpGeo, lpMaterial);
-            // Stagger LPs with slight offset and rotation
-            lp.rotation.x = Math.PI / 2 + (Math.random()-0.5) * 0.15;
-            lp.position.y = -height/2 + thickness + lpRadius + 0.2 + i*0.18;
-            lp.position.z = (Math.random()-0.5) * 0.3;
-            lp.position.x = (Math.random()-0.5) * 0.3;
-            storageCube.add(lp);
+            lp.rotation.x = Math.PI / 2;
+            lp.position.y = 0;
+            lp.position.z = 0.01;
+            cover.add(lp);
 
-            // Add a simple label sticker (white circle) to the center
+            // "Sticker" label
             const labelGeo = new THREE.CylinderGeometry(0.18, 0.18, lpThickness+0.01, 32);
             const labelMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
             const label = new THREE.Mesh(labelGeo, labelMat);
-            label.position.set(0,0,0);
+            label.position.set(0,0,0.012);
             lp.add(label);
+
+            // Position: some records peeking through slot, others inside
+            if (i % 2 === 0) {
+                // Peeking through right slot
+                cover.position.set(
+                    width/2 - thickness - 0.08,
+                    -height/2 + thickness + lpRadius + 0.08 + i*0.18,
+                    depth/2 - thickness - slotWidth/2 - 0.13
+                );
+                cover.rotation.y = -0.07 + (Math.random()-0.5) * 0.04;
+            } else {
+                // Peeking through left slot
+                cover.position.set(
+                    -width/2 + thickness + 0.08,
+                    -height/2 + thickness + lpRadius + 0.08 + i*0.18,
+                    depth/2 - thickness - slotWidth/2 - 0.13
+                );
+                cover.rotation.y = 0.07 + (Math.random()-0.5) * 0.04;
+            }
+            storageCube.add(cover);
         }
 
         // Add the finished cube to the scene
         scene.add(storageCube);
 
-        // 6. CONTROLS
-        // ======================================
+        // CONTROLS
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
 
-        // 7. ANIMATION LOOP
-        // ======================================
+        // ANIMATION LOOP
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
             renderer.render(scene, camera);
         }
-
         animate();
     </script>
 </body>
